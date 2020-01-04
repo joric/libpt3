@@ -1,5 +1,3 @@
-// defines pt3_init() and pt3_play()
-// you don't need to include other files
 // ported from https://github.com/ESPboy-edu/ESPboy_PT3Play
 // C++ version by Shiru
 // Plain C version by Joric, 2019
@@ -792,9 +790,7 @@ int main() {
 		if (PT3.CurrentPosition < pos)
 			break;
 
-		for (int i = 0; i < 14; i++)
-			printf("%d ", info->chip0.reg[i]);
-		printf("\n");
+		for (int i = 0; i < 14; i++) printf("%d ", info->chip0.reg[i]); printf("\n");
 
 		frame++;
 	}
@@ -803,6 +799,6 @@ int main() {
 
 	int frames = frame;
 
-	fprintf(stderr, "shiru, pt3 reader, is_ts: %d frames: %d, loop: %d\n", info->is_ts, frames, loop);
+	fprintf(stderr, "shiru, pt3 reader, is_ts: %d, frames: %d, loop: %d\n", info->is_ts, frames, loop);
 	fprintf(stderr, "%f seconds\n", time_taken);
 }
