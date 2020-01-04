@@ -22,9 +22,8 @@ ayemul, ay render, frames: 5376, writing wav...
 
 ## TODO
 
-### ayemul
-
 * move mixer code out of the ChipTacts_per_outcount loop
+* optimize for mono output (don't need mixer there at all)
 
 ## References
 
