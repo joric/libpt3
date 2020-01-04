@@ -3,6 +3,8 @@
 
 #include "test/data_shiru.h"
 
+#define TEST_ENV 0
+
 #include <stdint.h>
 #include <stdlib.h>	//free
 #include <string.h>	//memset
@@ -15,17 +17,6 @@ volatile uint32_t t = 0;
 #define AY_CLOCK      1773400	//pitch
 #define SAMPLE_RATE   44100		//quality of the sound, i2s DAC can't handle more than 44100 by some reason (not even 48000)
 #define FRAME_RATE    50		//speed
-
-#define AYEMU_MAX_AMP 24575
-
-#if 1
-const int AY_table [16] = {0,513,828,1239,1923,3238,4926,9110,10344,17876,24682,30442,38844,47270,56402,65535};
-const int AY_eq[] = {100,33,70,70,33,100};
-#else //YM
-const int AY_table [32] = {0, 0, 190, 286, 375, 470, 560, 664, 866, 1130, 1515, 1803, 2253, 2848, 3351, 3862, 4844, 6058, 7290, 8559, 10474, 12878, 15297, 17787, 21500, 26172, 30866, 35676, 42664, 50986, 58842, 65535};
-const int AY_eq[] = {100, 5, 70, 70, 5, 100};
-#endif
-
 
 typedef struct {
 	int count;
@@ -188,8 +179,7 @@ inline void ay_tick(AYChipStruct * ay, int ticks) {
 				ay->noise.count = 0;
 
 			//огибающая
-
-#if 0
+#if !TEST_ENV
 			if (ay->env.count == 0) {
 				switch (ay->reg[13]) {
 					case 0:
@@ -261,22 +251,26 @@ inline void ay_tick(AYChipStruct * ay, int ticks) {
 
 				}
 			}
-#endif
-
-		}
-
-#if 1
-			if (ay->env.count == 0) {
-				ay->env.dac = envelope(ay->reg[13], ay->env.pos);
-				if (++ay->env.pos > 127)
-					ay->env.pos = 64;
-			}
-#endif
 
 			ay->env.count++;
 			if (ay->env.count >= (ay->reg[11] | (ay->reg[12] << 8))) {
 				ay->env.count = 0;
 			}
+#endif
+
+		}
+
+#if TEST_ENV
+			if (ay->env.count == 0) {
+				ay->env.dac = envelope(ay->reg[13], ay->env.pos);
+				if (++ay->env.pos > 127)
+					ay->env.pos = 64;
+			}
+			ay->env.count++;
+			if (ay->env.count >= (ay->reg[11] | (ay->reg[12] << 8))) {
+				ay->env.count = 0;
+			}
+#endif
 
 		//микшер
 
@@ -314,14 +308,16 @@ inline void ay_tick(AYChipStruct * ay, int ticks) {
 				ay->dac[2] = 0;
 		}
 
-		//ay->dac[0] = ay->dac[1] = ay->dac[2] = ay->env.vol;
-#if 1
+#if !TEST_ENV
 		ay->out[0] += volTab[ay->dac[0]];
 		ay->out[1] += volTab[ay->dac[1]];
 		ay->out[2] += volTab[ay->dac[2]];
 #endif
 
-#if 0
+#if TEST_ENV
+	const int AY_table [16] = {0,513,828,1239,1923,3238,4926,9110,10344,17876,24682,30442,38844,47270,56402,65535};
+	const int AY_eq[] = {100,33,70,70,33,100};
+
 		for (int ch=0; ch<3; ch++)
 			ay->out[ch] += AY_table[ay->dac[ch]];
 #endif

@@ -12,7 +12,7 @@ zxssk, pt3 reader, is_ts: 0, frames: 5376, loop: 0
 shiru, ay render, frames: 5376, writing wav...
 0.173000 seconds
 ayemul, ay render, frames: 5376, writing wav...
-0.269000 seconds
+0.277000 seconds
 ```
 
 ## Notes
