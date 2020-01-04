@@ -18,7 +18,7 @@ ayemul, ay render, frames: 5376, writing wav...
 ## Notes
 
 * AY register data 100% matches, that's a plus.
-* Shiru player is far from accurate but it's faster
+* Shiru player is far from accurate but it's 30% faster (!)
 
 ## TODO
 
