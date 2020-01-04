@@ -6,7 +6,8 @@ Results so far:
 
 `benchmark.cmd 2>results.txt`
 
-```shiru, pt3 reader, is_ts: 0 frames: 5376, loop: 384
+```
+shiru, pt3 reader, is_ts: 0 frames: 5376, loop: 384
 0.010000 seconds
 zxssk, pt3 reader, is_ts: 0, frames: 5376, loop: 0
 0.010000 seconds
