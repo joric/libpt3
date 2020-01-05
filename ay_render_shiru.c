@@ -40,8 +40,6 @@ typedef struct {
 	int dac[3];
 	int out[3];
 	int freqDiv;
-
-	int vols[6][32];
 } AYChipStruct;
 
 //табличка громкости (реальная, (С)HackerKAY)
