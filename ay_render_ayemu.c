@@ -1,7 +1,7 @@
 // uses portions of libayemu: https://github.com/gasman/libayemu
 // plain C version by Joric, 2019
 
-#include "test/data_zxssk.h"
+#include "data_zxssk.h"
 
 #define AYEMU_MAX_AMP 24575
 #define AYEMU_DEFAULT_CHIP_FREQ 1773400

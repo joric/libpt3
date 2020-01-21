@@ -773,9 +773,9 @@ int main() {
 	PT3_SongInfo *data = &info->data;
 	PT3_File *header = (PT3_File *) info->module;
 
+	printf("const unsigned char frame_data[][14] = {\n");
 
 	clock_t t = clock();
-
 	for (;;) {
 		int pos = PT3.CurrentPosition;
 
@@ -790,11 +790,14 @@ int main() {
 		if (PT3.CurrentPosition < pos)
 			break;
 
-		for (int i = 0; i < 14; i++) printf("%d ", info->chip0.reg[i]); printf("\n");
+		printf("{"); for (int i = 0; i < 14; i++) printf("%d,", info->chip0.reg[i]); printf("},\n");
 
 		frame++;
 	}
 	t = clock() - t;
+
+	printf("};\n");
+
 	double time_taken = ((double)t) / CLOCKS_PER_SEC;
 
 	int frames = frame;

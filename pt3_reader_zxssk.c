@@ -721,6 +721,8 @@ int main() {
 	int frame = 0;
 	int loop = player->loop;
 
+	printf("const unsigned char frame_data[][14] = {\n");
+
 	clock_t t = clock();
 
 	for(;;) {
@@ -728,11 +730,14 @@ int main() {
 		PT3Player_Step(player);
 		if (player->tick <= pos || player->time <= pos)
 			break;
-		for (int i=0; i<14; i++) printf("%d ", player->regs[0][i]); printf("\n");
+		printf("{"); for (int i = 0; i < 14; i++) printf("%d,", player->regs[0][i]); printf("},\n");
 		frame++;
 	}
 
-	t = clock() - t; 
+	t = clock() - t;
+
+	printf("};\n");
+
 	double time_taken = ((double)t)/CLOCKS_PER_SEC;
 
 	int frames = frame;

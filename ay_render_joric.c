@@ -3,12 +3,16 @@
 
 #include "data_shiru.h"
 
+#define TEST_ENV 0
+
 #include <stdint.h>
 #include <stdlib.h>	//free
 #include <string.h>	//memset
 #include <stdio.h>	//file
 #include <stdbool.h>//bool
 #include <time.h>
+
+volatile uint32_t t = 0;
 
 #define AY_CLOCK      1773400	//pitch
 #define SAMPLE_RATE   44100		//quality of the sound, i2s DAC can't handle more than 44100 by some reason (not even 48000)
@@ -30,6 +34,9 @@ typedef struct {
 	int count;
 	int dac;
 	int up;
+
+	//
+	int pos;
 } envStruct;
 
 typedef struct {
@@ -40,9 +47,11 @@ typedef struct {
 	int dac[3];
 	int out[3];
 	int freqDiv;
+
+	int vols[6][32];
 } AYChipStruct;
 
-//табличка громкости (реальная, (С)HackerKAY)
+//
 
 #define VDIV	3
 
@@ -64,6 +73,11 @@ int volTab[16] = {
 	55195 / VDIV,
 	65535 / VDIV
 };
+
+inline int getvol(AYChipStruct * ay, int ay_channel, int channel, int tmpvol) {
+	return ay->vols[ay_channel*2 + channel][tmpvol];
+	//if (ay_channel==1 || (ay_channel==0 && channel==0) || (ay_channel==2 && channel==1)) return tmpvol * 1024;
+}
 
 void ay_init(AYChipStruct * ay) {
 	memset(ay, 0, sizeof(AYChipStruct));
@@ -95,6 +109,7 @@ void ay_out(AYChipStruct * ay, int reg, int value) {
 			break;
 		case 13:
 			value &= 15;
+			ay->env.pos = 0;
 			ay->env.count = 0;
 			if (value & 2) {
 				ay->env.dac = 0;
@@ -107,6 +122,13 @@ void ay_out(AYChipStruct * ay, int reg, int value) {
 	}
 
 	ay->reg[reg] = value;
+}
+
+inline int envelope(int e, int x) {
+	int loop = e > 7 && (e % 2)==0;
+	int q = (x / 32) & (loop ? 1 : 3);
+	int ofs = (q==0 ? (e & 4)==0 : (e == 8 || e==11 || e==13 || e==14)) ? 31 : 0;
+	return (q==0 || loop) ? ( ofs + (ofs!=0 ? -1 : 1) * (x % 32) ) : ofs;
 }
 
 static inline void ay_tick(AYChipStruct * ay, int ticks) {
@@ -157,6 +179,7 @@ static inline void ay_tick(AYChipStruct * ay, int ticks) {
 				ay->noise.count = 0;
 
 			//огибающая
+#if !TEST_ENV
 			if (ay->env.count == 0) {
 				switch (ay->reg[13]) {
 					case 0:
@@ -233,9 +256,24 @@ static inline void ay_tick(AYChipStruct * ay, int ticks) {
 			if (ay->env.count >= (ay->reg[11] | (ay->reg[12] << 8))) {
 				ay->env.count = 0;
 			}
+#endif
+
 		}
 
+#if TEST_ENV
+			if (ay->env.count == 0) {
+				ay->env.dac = envelope(ay->reg[13], ay->env.pos);
+				if (++ay->env.pos > 127)
+					ay->env.pos = 64;
+			}
+			ay->env.count++;
+			if (ay->env.count >= (ay->reg[11] | (ay->reg[12] << 8))) {
+				ay->env.count = 0;
+			}
+#endif
+
 		//микшер
+
 		ta = ay->tone[0].state | ((ay->reg[7] >> 0) & 1);
 		tb = ay->tone[1].state | ((ay->reg[7] >> 1) & 1);
 		tc = ay->tone[2].state | ((ay->reg[7] >> 2) & 1);
@@ -270,9 +308,19 @@ static inline void ay_tick(AYChipStruct * ay, int ticks) {
 				ay->dac[2] = 0;
 		}
 
+#if !TEST_ENV
 		ay->out[0] += volTab[ay->dac[0]];
 		ay->out[1] += volTab[ay->dac[1]];
 		ay->out[2] += volTab[ay->dac[2]];
+#endif
+
+#if TEST_ENV
+	const int AY_table [16] = {0,513,828,1239,1923,3238,4926,9110,10344,17876,24682,30442,38844,47270,56402,65535};
+	const int AY_eq[] = {100,33,70,70,33,100};
+
+		for (int ch=0; ch<3; ch++)
+			ay->out[ch] += AY_table[ay->dac[ch]];
+#endif
 	}
 
 	ay->out[0] /= ticks;
@@ -315,7 +363,7 @@ int main() {
 	int samples = samplerate * frames / playerFreq;
 	int samples_per_frame = samples / frames;
 
-	fprintf(stderr, "shiru, ay render, frames: %d, writing wav...\n", frames);
+	fprintf(stderr, "joric, ay render, frames: %d, writing wav...\n", frames);
 
 	int bufsize = samples*4;
 	uint32_t * buf = (uint32_t*)malloc(bufsize);
@@ -339,7 +387,7 @@ int main() {
 	double time_taken = ((double)t) / CLOCKS_PER_SEC;
 	fprintf(stderr, "%f seconds\n", time_taken);
 
-	FILE *fp = fopen("out_shiru.wav", "wb");
+	FILE *fp = fopen("out_joric.wav", "wb");
 	int hdr[] = { 1179011410, 36, 1163280727, 544501094, 16, 131073, 44100, 176400, 1048580, 1635017060, 0 };
 	hdr[1] = samples * 4 + 15;
 	hdr[10] = samples * 4;
