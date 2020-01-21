@@ -802,6 +802,6 @@ int main() {
 
 	int frames = frame;
 
-	fprintf(stderr, "shiru, pt3 reader, is_ts: %d, frames: %d, loop: %d\n", info->is_ts, frames, loop);
+	fprintf(stderr, "shiru, pt3 reader, ts: %d, frames: %d, loop: %d\n", info->is_ts, frames, loop);
 	fprintf(stderr, "%f seconds\n", time_taken);
 }

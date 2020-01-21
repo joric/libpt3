@@ -742,7 +742,7 @@ int main() {
 
 	int frames = frame;
 
-	fprintf(stderr, "zxssk, pt3 reader, is_ts: %d, frames: %d, loop: %d\n",
+	fprintf(stderr, "zxssk, pt3 reader, ts: %d, frames: %d, loop: %d\n",
 		player->tsMode, frames, loop);
 	fprintf(stderr, "%f seconds\n", time_taken);
 }
